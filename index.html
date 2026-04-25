@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nayan & Juned Wedding</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Playfair Display', serif;
+            background: radial-gradient(circle, #5a0000, #1a0000);
+            color: gold;
+            overflow-x: hidden;
+        }
+
+        /* DOOR */
+        .door-wrapper {
+            perspective: 1200px;
+            height: 100vh;
+            display: flex;
+            cursor: pointer;
+        }
+
+        .door {
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(145deg, #a00000, #5c0000);
+            border: 2px solid gold;
+            transition: transform 1.5s ease;
+        }
+
+        .left {
+            transform-origin: left;
+        }
+
+        .right {
+            transform-origin: right;
+        }
+
+        .open .left {
+            transform: rotateY(-110deg);
+        }
+
+        .open .right {
+            transform: rotateY(110deg);
+        }
+
+        .center-text {
+            position: absolute;
+            width: 100%;
+            top: 40%;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        /* GOLD TEXT */
+        .gold-text {
+            font-size: 48px;
+            background: linear-gradient(120deg, #d4af37, #fff8dc, #ffd700, #d4af37);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: shimmer 3s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -200%;
+            }
+
+            100% {
+                background-position: 200%;
+            }
+        }
+
+        /* SECTION */
+        .section {
+            padding: 80px 20px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: 1s;
+        }
+
+        .section.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* SCRATCH */
+        canvas {
+            border-radius: 50%;
+            background: gray;
+        }
+
+        /* PARTICLES */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="particles"></canvas>
+
+    <audio id="music" loop>
+        <source src="YOUR-MUSIC-LINK.mp3">
+    </audio>
+
+    <div id="doorPage">
+        <div class="door-wrapper" onclick="openDoor()">
+            <div class="door left"></div>
+            <div class="door right"></div>
+            <div class="center-text">Tap to Open 💖</div>
+        </div>
+    </div>
+
+    <div id="content" style="display:none">
+
+        <div class="section">
+            <h1 class="gold-text">Nayan & Juned</h1>
+            <p>With love, we invite you</p>
+        </div>
+
+        <div class="section">
+            <h2>Scratch to Reveal Date</h2>
+            <canvas width="100" height="100"></canvas>
+            <canvas width="100" height="100"></canvas>
+            <canvas width="100" height="100"></canvas>
+            <p id="date" style="display:none">6th May 2026</p>
+        </div>
+
+        <div class="section">
+            <h2>Venue</h2>
+            <p>Royal Palace Banquet Hall, Pune</p>
+        </div>
+
+    </div>
+
+    <script>
+        // MUSIC
+        function playMusic() {
+            let m = document.getElementById("music");
+            m.play().catch(() => {
+                document.body.addEventListener("click", () => m.play(), { once: true });
+            });
+        }
+
+        // DOOR
+        function openDoor() {
+            document.body.classList.add("open");
+            playMusic();
+
+            setTimeout(() => {
+                document.getElementById("doorPage").style.display = "none";
+                document.getElementById("content").style.display = "block";
+                showSections();
+            }, 1500);
+        }
+
+        // ANIMATION
+        function showSections() {
+            document.querySelectorAll(".section").forEach((s, i) => {
+                setTimeout(() => s.classList.add("show"), i * 400);
+            });
+        }
+
+        // SCRATCH
+        document.querySelectorAll("canvas").forEach(c => {
+            let ctx = c.getContext("2d");
+            ctx.fillRect(0, 0, 100, 100);
+
+            function scratch(x, y) {
+                ctx.globalCompositeOperation = "destination-out";
+                ctx.beginPath();
+                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.fill();
+                document.getElementById("date").style.display = "block";
+            }
+
+            c.addEventListener("mousemove", e => {
+                if (e.buttons != 1) return;
+                let r = c.getBoundingClientRect();
+                scratch(e.clientX - r.left, e.clientY - r.top);
+            });
+
+            c.addEventListener("touchmove", e => {
+                let r = c.getBoundingClientRect();
+                let t = e.touches[0];
+                scratch(t.clientX - r.left, t.clientY - r.top);
+            });
+        });
+
+        // PARTICLES
+        let canvas = document.getElementById("particles");
+        let ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let p = [];
+        for (let i = 0; i < 60; i++) {
+            p.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: 2 });
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "gold";
+            p.forEach(a => {
+                ctx.beginPath();
+                ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+                ctx.fill();
+                a.y += 0.5;
+                if (a.y > canvas.height) a.y = 0;
+            });
+        }
+        setInterval(draw, 30);
+    </script>
+
+</body>
+
+</html>
