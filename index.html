@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +13,7 @@
             font-family: 'Playfair Display', serif;
             background: radial-gradient(circle, #5a0000, #1a0000);
             color: gold;
-            overflow-x: hidden;
+            overflow: hidden;
         }
 
         /* DOOR */
@@ -23,15 +22,30 @@
             height: 100vh;
             display: flex;
             cursor: pointer;
+            position: relative;
         }
 
         .door {
             width: 50%;
             height: 100%;
-            background: linear-gradient(145deg, #a00000, #5c0000);
-            border: 2px solid gold;
+            background: linear-gradient(145deg, #b30000, #5a0000);
+            border: 3px solid gold;
             transition: transform 1.5s ease;
+            position: relative;
         }
+
+        .door:before {
+            content: "";
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle, gold, #d4af37);
+            border-radius: 50%;
+            top: 50%;
+        }
+
+        .left:before { right: 20px; }
+        .right:before { left: 20px; }
 
         .left {
             transform-origin: left;
@@ -41,26 +55,22 @@
             transform-origin: right;
         }
 
-        .open .left {
-            transform: rotateY(-110deg);
-        }
-
-        .open .right {
-            transform: rotateY(110deg);
-        }
+        .open .left { transform: rotateY(-110deg); }
+        .open .right { transform: rotateY(110deg); }
 
         .center-text {
             position: absolute;
             width: 100%;
-            top: 40%;
+            top: 45%;
             text-align: center;
-            font-size: 24px;
+            font-size: 30px;
+            color: gold;
         }
 
         /* GOLD TEXT */
         .gold-text {
             font-size: 48px;
-            background: linear-gradient(120deg, #d4af37, #fff8dc, #ffd700, #d4af37);
+            background: linear-gradient(120deg, #ffd700, #fff8dc, #ffd700, #e6c200);
             background-size: 200%;
             -webkit-background-clip: text;
             color: transparent;
@@ -68,33 +78,40 @@
         }
 
         @keyframes shimmer {
-            0% {
-                background-position: -200%;
-            }
-
-            100% {
-                background-position: 200%;
-            }
+            from { background-position: -200%; }
+            to   { background-position: 200%; }
         }
 
-        /* SECTION */
+        /* CONTENT SECTIONS */
         .section {
-            padding: 80px 20px;
+            padding: 60px 20px;
             text-align: center;
             opacity: 0;
             transform: translateY(40px);
             transition: 1s;
         }
-
         .section.show {
             opacity: 1;
             transform: translateY(0);
         }
 
         /* SCRATCH */
+        .scratch-area {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
         canvas {
             border-radius: 50%;
             background: gray;
+        }
+
+        #date {
+            font-size: 30px;
+            margin-top: 15px;
+            color: gold;
         }
 
         /* PARTICLES */
@@ -114,9 +131,10 @@
     <canvas id="particles"></canvas>
 
     <audio id="music" loop>
-        <source src="YOUR-MUSIC-LINK.mp3">
+        <source src="https://filesamples.com/samples/audio/mp3/sample3.mp3">
     </audio>
 
+    <!-- DOOR PAGE -->
     <div id="doorPage">
         <div class="door-wrapper" onclick="openDoor()">
             <div class="door left"></div>
@@ -125,6 +143,7 @@
         </div>
     </div>
 
+    <!-- CONTENT PAGE -->
     <div id="content" style="display:none">
 
         <div class="section">
@@ -134,10 +153,14 @@
 
         <div class="section">
             <h2>Scratch to Reveal Date</h2>
-            <canvas width="100" height="100"></canvas>
-            <canvas width="100" height="100"></canvas>
-            <canvas width="100" height="100"></canvas>
-            <p id="date" style="display:none">6th May 2026</p>
+
+            <div class="scratch-area">
+                <canvas width="120" height="120"></canvas>
+                <canvas width="120" height="120"></canvas>
+                <canvas width="120" height="120"></canvas>
+            </div>
+
+            <p id="date" style="display:none">💛 6th May 2026 💛</p>
         </div>
 
         <div class="section">
@@ -148,7 +171,7 @@
     </div>
 
     <script>
-        // MUSIC
+        /* MUSIC AUTOPLAY */
         function playMusic() {
             let m = document.getElementById("music");
             m.play().catch(() => {
@@ -156,7 +179,7 @@
             });
         }
 
-        // DOOR
+        /* DOOR OPEN */
         function openDoor() {
             document.body.classList.add("open");
             playMusic();
@@ -168,65 +191,66 @@
             }, 1500);
         }
 
-        // ANIMATION
+        /* SECTION SLIDE */
         function showSections() {
-            document.querySelectorAll(".section").forEach((s, i) => {
-                setTimeout(() => s.classList.add("show"), i * 400);
+            document.querySelectorAll(".section").forEach((sec, i) => {
+                setTimeout(() => sec.classList.add("show"), i * 400);
             });
         }
 
-        // SCRATCH
+        /* SCRATCH LOGIC */
         document.querySelectorAll("canvas").forEach(c => {
             let ctx = c.getContext("2d");
-            ctx.fillRect(0, 0, 100, 100);
+            ctx.fillStyle = "#999";
+            ctx.fillRect(0, 0, 120, 120);
 
             function scratch(x, y) {
                 ctx.globalCompositeOperation = "destination-out";
                 ctx.beginPath();
-                ctx.arc(x, y, 10, 0, Math.PI * 2);
+                ctx.arc(x, y, 15, 0, Math.PI * 2);
                 ctx.fill();
                 document.getElementById("date").style.display = "block";
             }
 
             c.addEventListener("mousemove", e => {
-                if (e.buttons != 1) return;
+                if (e.buttons !== 1) return;
                 let r = c.getBoundingClientRect();
                 scratch(e.clientX - r.left, e.clientY - r.top);
             });
 
             c.addEventListener("touchmove", e => {
-                let r = c.getBoundingClientRect();
                 let t = e.touches[0];
+                let r = c.getBoundingClientRect();
                 scratch(t.clientX - r.left, t.clientY - r.top);
             });
         });
 
-        // PARTICLES
+        /* PARTICLE RAIN */
         let canvas = document.getElementById("particles");
         let ctx = canvas.getContext("2d");
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        let p = [];
-        for (let i = 0; i < 60; i++) {
-            p.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: 2 });
+        let particles = [];
+        for (let i = 0; i < 80; i++) {
+            particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, r: 2 });
         }
 
-        function draw() {
+        function drawParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "gold";
-            p.forEach(a => {
+            particles.forEach(p => {
                 ctx.beginPath();
-                ctx.arc(a.x, a.y, a.r, 0, Math.PI * 2);
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
                 ctx.fill();
-                a.y += 0.5;
-                if (a.y > canvas.height) a.y = 0;
+                p.y += 0.7;
+                if (p.y > canvas.height) p.y = 0;
             });
         }
-        setInterval(draw, 30);
+
+        setInterval(drawParticles, 30);
     </script>
 
 </body>
-
 </html>
